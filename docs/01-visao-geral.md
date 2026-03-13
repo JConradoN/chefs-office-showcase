@@ -77,7 +77,7 @@ O **Chefs Office** é uma plataforma SaaS de gestão culinária profissional cri
 | Ambiente | URL |
 |----------|-----|
 | Preview (dev) | `[AMBIENTE DE PREVIEW INTERNO]` |
-| Produção | `https://www.chefs-office.com.br` |
+| Produção | `https://www.chefsoffice.com.br` |
 
 ---
 
