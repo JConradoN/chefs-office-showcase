@@ -1,132 +1,167 @@
-# chefs-office-showcase
-Plataforma de gestão de fichas técnicas para chefs
-# 🍳 Chefs Office
+# Chefs Office
 
-> SaaS para gestão técnica e financeira de cozinhas profissionais — desenvolvido por um chef com 8 anos de experiência e background em TI.
+> SaaS platform for professional kitchen management — AI-powered recipe ingestion, cost analysis, and multi-establishment operations. Built by a professional chef with 8 years in the kitchen and 28 years in IT.
 
-🔗 **[chefsoffice.com.br](https://www.chefsoffice.com.br)** — acesso gratuito disponível
+🔗 **[chefsoffice.com.br](https://www.chefsoffice.com.br)** — free tier available
 
----
+[![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)](https://supabase.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-2.0_Flash-orange?logo=google)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Sobre o projeto
-
-Chefs Office é um sistema web completo para gestão de fichas técnicas gastronômicas. O produto resolve um problema real do mercado: chefs e donos de restaurante gerenciam receitas, custos e precificação em planilhas e papel — um processo lento, propenso a erros e sem escala.
-
-O sistema foi concebido, projetado e desenvolvido por mim como produto solo, da arquitetura ao deploy, combinando minha experiência em cozinha profissional com background em infraestrutura de TI e desenvolvimento com IA.
+**Showcase repository** — full source available on request for technical evaluation.
 
 ---
 
-## Stack
+## The Problem
 
-| Camada | Tecnologia |
+Professional chefs manage dozens of technical recipe sheets (fichas técnicas) scattered across PDFs, spreadsheets, and paper notebooks. Costing a new dish means manually entering ingredients, applying correction factors, and recalculating every time a supplier changes a price. Scaling from one kitchen to multiple establishments multiplies the chaos.
+
+Cloud tools exist but they're either too generic (built by developers who never cooked) or too expensive for independent restaurants and small chains.
+
+Chefs Office was built from the inside out — by someone who actually worked the line for 8 years.
+
+---
+
+## What It Does
+
+- **AI-powered recipe ingestion** — upload a PDF, Word doc, spreadsheet, or image of a handwritten recipe and Gemini 2.0 Flash extracts ingredients, quantities, preparation steps, and phases automatically
+- **Smart ingredient resolution** — 4-layer matching: user catalog → 320-item global catalog (TACO/USDA) → sub-recipes → inline creation. No manual lookup.
+- **Automatic cost calculation** — CMV%, price per portion, markup by factor, margin analysis — recalculated in real time as ingredient prices change
+- **Chained sub-recipes** — an FTI (technical ingredient sheet) can be used as an ingredient inside an FTP (production sheet), with automatic cost propagation through the chain
+- **Professional PDF export** — recipe PDF and cost analysis PDF (gerencial) with branded formatting
+- **Multi-establishment** — one account, multiple kitchens, independent pricing per location
+- **Nutritional data** — calories, protein, carbs, fat, fiber from the Brazilian TACO table (UNICAMP) + USDA, with correction factors (FC/FCC) per ingredient category
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
 |---|---|
-| Frontend | React 18 + TypeScript + Tailwind CSS + shadcn/ui |
-| Estado | TanStack Query v5 |
-| Backend | Supabase (PostgreSQL + Auth + Storage + Edge Functions) |
-| IA | Gemini 2.0 Flash via Edge Function (Deno) |
-| PDF | jsPDF + html2canvas |
-| Deploy | Lovable (CI/CD automatizado) |
-| Automações | n8n (self-hosted, zero custo) |
-| Workflow de dev | Claude Code + Gemini + Lovable |
+| Frontend | React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui |
+| State management | TanStack Query v5 |
+| Backend / Database | Supabase (PostgreSQL + Row Level Security + Auth + Storage) |
+| AI pipeline | Gemini 2.0 Flash via Supabase Edge Function (Deno) |
+| PDF generation | jsPDF + html2canvas |
+| Automation | n8n (self-hosted, zero cost) |
+| Deploy / CI | Lovable |
+
+**Infrastructure cost in production: ~R$110/month (~$22 USD)**
 
 ---
 
-## Funcionalidades
+## Architecture
 
-### Fichas Técnicas
-- CRUD completo de receitas com foto obrigatória
-- Tipos: Ficha Técnica de Produção (FTP) e Ficha Técnica de Ingrediente (FTI)
-- Sub-receitas encadeadas: FTI como ingrediente de FTP com propagação automática de custo
-- Exportação em PDF profissional (PDF Receita e PDF Gerencial)
-- Etapas de preparo com 4 fases: pré-preparo, preparo, finalização e empratamento
+```
+Browser (React 18 + TypeScript)
+    │
+    ├── Supabase Auth (JWT)     — email/password + Google OAuth
+    ├── Supabase PostgreSQL     — RLS on every table
+    ├── Supabase Storage        — recipe photos
+    └── Edge Function (Deno)   — AI processing, no API key on client
+              │
+              ├── POST /process-recipe-etl
+              │     ├── Receives: PDF / DOCX / XLSX / image
+              │     ├── Extracts text (DOCX/XLSX via XML unzip)
+              │     ├── Calls Gemini 2.0 Flash with fallback chain
+              │     │     gemini-2.0-flash → gemini-1.5-flash-8b → gemini-flash-latest
+              │     └── Returns: structured ExtractedRecipe JSON
+              │
+              └── POST /delete-user
+```
 
-### Importação com IA
-- Upload de fichas em PDF, DOCX, XLSX, PNG ou JPG
-- Extração automática de ingredientes, quantidades e etapas via Gemini 2.0 Flash
-- Fallback automático para modelos alternativos em caso de indisponibilidade
-- Etapas inferidas pela IA identificadas com badge visual para revisão do usuário
-- SmartImporter com resolução em 4 camadas: catálogo do usuário → catálogo global → sub-receitas → criação inline
-
-### Ingredientes
-- Catálogo global com **320 ingredientes** baseados na Tabela TACO (UNICAMP) + USDA
-- FC (Fator de Correção) e FCC (Fator de Cocção) aplicados por categoria
-- Dados nutricionais completos: calorias, proteínas, carboidratos, gorduras e fibras
-- Catálogo por estabelecimento com preço de embalagem e fornecedor
-- Importação com 1 clique do catálogo TACO para o catálogo do usuário
-
-### Custos e Precificação
-- Cálculo automático de CMV%
-- Modelo de markup por fator direto (custo × fator)
-- Análise financeira completa: custo por porção, preço de venda, margem
-- Comparativo de cenários no PDF Gerencial
-
-### Multi-estabelecimento
-- Um usuário pode gerenciar múltiplos estabelecimentos
-- Preços de ingredientes independentes por estabelecimento
-- Cardápios com seções e receitas vinculadas
-
-### Autenticação e Onboarding
-- Auth completo com Supabase (email/senha + Google OAuth)
-- Fluxo de onboarding guiado com criação de estabelecimento
-- Planos: Free / Pro / Enterprise
-
----
-
-## Arquitetura de banco de dados
+### Database Schema
 
 ```
 profiles
 establishments ──── establishment_members
-                └── establishment_ingredients ──── ingredients (catálogo global: user_id IS NULL)
-                                                └── ingredients (catálogo usuário: user_id = X)
+                └── establishment_ingredients ──── ingredients (global catalog: user_id IS NULL)
+                                                └── ingredients (user catalog: user_id = X)
 recipes ──── recipe_ingredients ──── ingredients
-         └── preparation_steps      └── sub_recipe_id → recipes (FTI encadeado)
+         └── preparation_steps      └── sub_recipe_id → recipes  (chained FTI)
 menus ──── menu_sections ──── menu_recipes ──── recipes
 ```
 
-Principais decisões de arquitetura:
-- Catálogo global (`user_id IS NULL`) é somente leitura — importado via RPC para o catálogo do usuário antes de ser utilizado em fichas
-- Constraint de banco garante que `recipe_ingredients` nunca referencie ingrediente sem dono
-- RPCs com similaridade de texto (`pg_trgm`) para busca inteligente no catálogo
-- Edge Functions em Deno para processamento de IA sem expor chave no cliente
+Key design decisions:
+- Global ingredient catalog (`user_id IS NULL`) is read-only — imported via RPC before use
+- `pg_trgm` similarity search for smart ingredient matching during import
+- Database constraint prevents `recipe_ingredients` from referencing ingredients without an owner
+- All AI processing happens server-side in Deno Edge Functions — Gemini API key never reaches the browser
 
 ---
 
-## Workflow de desenvolvimento
+## AI Import Pipeline
 
-Este projeto foi desenvolvido com um workflow **AI-first** deliberadamente estruturado:
-
-- **Gemini** → arquitetura, infraestrutura, decisões de schema
-- **Claude / Claude Code** → lógica complexa, SQL, RPCs, Edge Functions, CLAUDE.md
-- **Lovable** → geração de UI via prompt (React/Tailwind), CI/CD automatizado
-- **n8n** (self-hosted) → automações de notificação e alertas, zero custo operacional
-- **Notion** → hub de documentação e gestão do produto
-
----
-
-## Custo de infraestrutura (produção)
-
-| Serviço | Plano | Custo |
-|---|---|---|
-| Supabase | Free tier | R$ 0 |
-| Lovable | Starter | ~R$ 100/mês |
-| Gemini API | Pay-as-you-go | ~R$ 7/mês |
-| Domínio | chefsoffice.com.br | ~R$ 50/ano |
-| n8n | Self-hosted (VPS própria) | R$ 0 |
-| **Total** | | **~R$ 110/mês** |
-
----
-
-## Sobre o desenvolvedor
-
-**Conrado Nogueira** — [github.com/JConradoN](https://github.com/JConradoN)
-
-Background multidisciplinar: 8 anos como chef profissional + carreira em TI (infraestrutura, redes, segurança) + desenvolvimento com IA.
-
-Especialidades: Python · SQL · Linux · Docker · n8n · RAG · Supabase · React · Claude Code · Lovable · Infraestrutura (Squid, Snort, Apache, DNS, LDAP, FreeBSD)
-
-Disponível para projetos freelance remotos — preferencialmente em USD.
+```
+User uploads file (PDF / DOCX / XLSX / PNG / JPG)
+    │
+    ▼ Edge Function detects file type
+    │   ├── DOCX/XLSX → unzip XML, extract text
+    │   └── PDF/image → base64 encode (Gemini inline_data)
+    │
+    ▼ Gemini 2.0 Flash extracts structured data
+    │   └── Fallback: gemini-1.5-flash-8b → gemini-flash-latest
+    │
+    ▼ SmartImporter resolves each ingredient in 4 layers
+    │   1. User's catalog (exact + similarity match)
+    │   2. Global TACO/USDA catalog (320 ingredients)
+    │   3. Existing sub-recipes
+    │   4. Inline creation if no match found
+    │
+    ▼ AI-inferred preparation steps marked with visual badge
+        → User reviews and confirms before saving
+```
 
 ---
 
-*Repositório de vitrine — código fonte completo disponível mediante solicitação para avaliação técnica.*
+## Ingredient Catalog
+
+- **320 items** based on Brazilian TACO nutritional table (UNICAMP) + USDA data
+- FC (Correction Factor) and FCC (Cooking Factor) per category — applied automatically
+- Full nutritional profile: calories, protein, carbs, fat, fiber
+- Each establishment maintains independent pricing per ingredient
+
+---
+
+## Development Workflow
+
+Built with a deliberately structured AI-first workflow:
+
+| Tool | Role |
+|---|---|
+| **Claude Code** | Complex logic, SQL, RPCs, architecture decisions |
+| **Gemini** | Frontend components, UI iteration |
+| **Lovable** | React/Tailwind UI generation, CI/CD pipeline |
+| **n8n** (self-hosted) | Notification automation, zero operational cost |
+
+---
+
+## Roadmap
+
+| Feature | Status |
+|---|---|
+| Core recipe management | ✅ Production |
+| AI recipe import (PDF/DOCX/XLSX/image) | ✅ Production |
+| Multi-establishment | ✅ Production |
+| PDF export (recipe + cost analysis) | ✅ Production |
+| 320-item TACO/USDA ingredient catalog | ✅ Production |
+| Google OAuth | ✅ Production |
+| Pro / billing system | 🔄 In development |
+| Mobile app | 📋 Planned |
+| Supplier price integration | 📋 Planned |
+
+---
+
+## About
+
+Built by **Conrado Nogueira** — 8 years as a professional chef + 28 years in IT infrastructure.
+
+The domain knowledge in this product is not cosmetic. The correction factor system, the chained sub-recipe architecture, the 4-phase preparation step model (pre-prep → prep → finishing → plating) — these come from real kitchen experience, not assumptions.
+
+[github.com/JConradoN](https://github.com/JConradoN) · Available for freelance projects (USD/EUR)
+
+---
+
+*Showcase repository — full source available on request for technical evaluation.*
