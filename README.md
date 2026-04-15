@@ -14,6 +14,10 @@
 
 ---
 
+![Chefs Office — Dashboard with recipe library and metrics](docs/screenshots/chefs_office-dashboard.jpg)
+
+---
+
 ## The Problem
 
 Professional chefs manage dozens of technical recipe sheets (fichas técnicas) scattered across PDFs, spreadsheets, and paper notebooks. Costing a new dish means manually entering ingredients, applying correction factors, and recalculating every time a supplier changes a price. Scaling from one kitchen to multiple establishments multiplies the chaos.
@@ -29,10 +33,52 @@ Chefs Office was built from the inside out — by someone who actually worked th
 - **AI-powered recipe ingestion** — upload a PDF, Word doc, spreadsheet, or image of a handwritten recipe and Gemini 2.0 Flash extracts ingredients, quantities, preparation steps, and phases automatically
 - **Smart ingredient resolution** — 4-layer matching: user catalog → 320-item global catalog (TACO/USDA) → sub-recipes → inline creation. No manual lookup.
 - **Automatic cost calculation** — CMV%, price per portion, markup by factor, margin analysis — recalculated in real time as ingredient prices change
-- **Chained sub-recipes** — an FTI (technical ingredient sheet) can be used as an ingredient inside an FTP (production sheet), with automatic cost propagation through the chain
-- **Professional PDF export** — recipe PDF and cost analysis PDF (gerencial) with branded formatting
+- **Chained sub-recipes** — an intermediate sheet (FTI) can be used as an ingredient inside a final sheet (FTP), with automatic cost propagation through the chain
+- **Professional PDF exports** — recipe sheet, cost analysis (gerencial), and ANVISA-compliant nutritional report (RDC 429/2020), all generated in one click
 - **Multi-establishment** — one account, multiple kitchens, independent pricing per location
 - **Nutritional data** — calories, protein, carbs, fat, fiber from the Brazilian TACO table (UNICAMP) + USDA, with correction factors (FC/FCC) per ingredient category
+
+---
+
+## Screenshots
+
+![Recipe library with AI import zone](docs/screenshots/chefs_office-fichas-tecnicas.jpg)
+
+*Recipe library — drag and drop a PDF/DOCX/XLSX/image to import with AI*
+
+---
+
+![AI SmartImporter — ingredient resolution in action](docs/screenshots/chefs_office-importacao.jpg)
+
+*SmartImporter — each ingredient resolved across 4 layers with similarity scores: user catalog → sub-recipes → TACO/USDA catalog → create new*
+
+---
+
+![Recipe detail — ingredients with FC/FCC and real-time cost](docs/screenshots/chefs_office-ficha-tecnica-1.jpg)
+
+*Recipe detail — FC (correction factor) and FCC (cooking factor) applied per ingredient, cost calculated in real time, sub-recipe linked inline*
+
+---
+
+![TACO ingredient catalog — 320 items with nutritional data](docs/screenshots/chefs_office-tabela-nutricional.jpg)
+
+*320-item TACO/USDA ingredient catalog — import any item to your establishment catalog with one click*
+
+---
+
+![Landing page](docs/screenshots/chefs_office-landing-page-1.jpg)
+
+---
+
+## PDF Outputs
+
+Three report types generated from every recipe:
+
+**Recipe Sheet** — photo, ingredients with FC/FCC, preparation steps by phase (pre-prep → prep → finishing → plating). The document that goes to the kitchen.
+
+**Cost Analysis (Gerencial)** — cost per ingredient, total CMV%, markup factor, profit per portion, suggested sale price. Marked "USO INTERNO — CONFIDENCIAL". The document that stays in the owner's drawer.
+
+**Nutritional Report** — ANVISA RDC 429/2020 compliant. Full nutrient breakdown per portion and per 100g, plus per-ingredient contribution table. Useful for menus, delivery platforms, and health certifications.
 
 ---
 
@@ -105,9 +151,9 @@ User uploads file (PDF / DOCX / XLSX / PNG / JPG)
     │   └── Fallback: gemini-1.5-flash-8b → gemini-flash-latest
     │
     ▼ SmartImporter resolves each ingredient in 4 layers
-    │   1. User's catalog (exact + similarity match)
+    │   1. User's catalog (exact + similarity match via pg_trgm)
     │   2. Global TACO/USDA catalog (320 ingredients)
-    │   3. Existing sub-recipes
+    │   3. Existing sub-recipes (FTI)
     │   4. Inline creation if no match found
     │
     ▼ AI-inferred preparation steps marked with visual badge
@@ -145,7 +191,8 @@ Built with a deliberately structured AI-first workflow:
 | Core recipe management | ✅ Production |
 | AI recipe import (PDF/DOCX/XLSX/image) | ✅ Production |
 | Multi-establishment | ✅ Production |
-| PDF export (recipe + cost analysis) | ✅ Production |
+| PDF export (recipe + cost analysis + nutritional) | ✅ Production |
+| ANVISA RDC 429/2020 nutritional report | ✅ Production |
 | 320-item TACO/USDA ingredient catalog | ✅ Production |
 | Google OAuth | ✅ Production |
 | Pro / billing system | 🔄 In development |
@@ -158,7 +205,9 @@ Built with a deliberately structured AI-first workflow:
 
 Built by **Conrado Nogueira** — 8 years as a professional chef + 28 years in IT infrastructure.
 
-The domain knowledge in this product is not cosmetic. The correction factor system, the chained sub-recipe architecture, the 4-phase preparation step model (pre-prep → prep → finishing → plating) — these come from real kitchen experience, not assumptions.
+The domain knowledge in this product is not cosmetic. The correction factor system, the chained sub-recipe architecture, the 4-phase preparation step model (pre-prep → prep → finishing → plating), the "USO INTERNO — CONFIDENCIAL" stamp on the cost analysis — these come from real kitchen experience, not assumptions.
+
+In active use for professional culinary consulting.
 
 [github.com/JConradoN](https://github.com/JConradoN) · Available for freelance projects (USD/EUR)
 
